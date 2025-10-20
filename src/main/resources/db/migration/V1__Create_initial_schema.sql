@@ -15,7 +15,7 @@ CREATE TABLE word_mappings (
     id BIGSERIAL PRIMARY KEY,
     game_id UUID NOT NULL,
     number INTEGER NOT NULL,
-    word VARCHAR(500) NOT NULL,
+    word VARCHAR(255) NOT NULL,
     CONSTRAINT fk_word_mappings_game FOREIGN KEY (game_id) REFERENCES games(id) ON DELETE CASCADE
 );
 

@@ -57,7 +57,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Error> handleGenericException(Exception ex) {
         Error error = new Error();
         error.setCode("INTERNAL_ERROR");
-        error.setMessage("An unexpected error occurred: " + ex.getMessage());
+        error.setMessage("An unexpected internal error occurred. Please contact support.");
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
     }
 }

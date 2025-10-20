@@ -3,9 +3,9 @@ services:
     image: postgres:16-alpine
     container_name: loto-bingo-postgres
     environment:
-      POSTGRES_DB: lotobingo
-      POSTGRES_USER: lotobingo
-      POSTGRES_PASSWORD: lotobingo123
+      POSTGRES_DB: ${POSTGRES_DB:-lotobingo}
+      POSTGRES_USER: ${POSTGRES_USER:-lotobingo}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-lotobingo123}
     ports:
       - "127.0.0.1:5433:5432"
     volumes:

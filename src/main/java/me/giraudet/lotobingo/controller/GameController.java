@@ -4,8 +4,9 @@ import lombok.RequiredArgsConstructor;
 import me.giraudet.lotobingo.api.DefaultApi;
 import me.giraudet.lotobingo.dto.*;
 import me.giraudet.lotobingo.entity.GameEntity;
+import me.giraudet.lotobingo.mapper.BingoCardMapper;
 import me.giraudet.lotobingo.mapper.GameMapper;
-import me.giraudet.lotobingo.service.GameService;
+import me.giraudet.lotobingo.service.*;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -33,11 +34,11 @@ public class GameController implements DefaultApi {
 
     private final GameService gameService;
     private final GameMapper gameMapper;
-    private final me.giraudet.lotobingo.service.BingoCardService bingoCardService;
-    private final me.giraudet.lotobingo.mapper.BingoCardMapper bingoCardMapper;
-    private final me.giraudet.lotobingo.service.DrawService drawService;
-    private final me.giraudet.lotobingo.service.ValidationService validationService;
-    private final me.giraudet.lotobingo.service.StatisticsService statisticsService;
+    private final BingoCardService bingoCardService;
+    private final BingoCardMapper bingoCardMapper;
+    private final DrawService drawService;
+    private final ValidationService validationService;
+    private final StatisticsService statisticsService;
 
     /**
      * POST /games - Create a new game

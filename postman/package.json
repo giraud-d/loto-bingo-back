@@ -7,7 +7,6 @@
     "test:api": "newman run loto-bingo-api.postman_collection.json -e loto-bingo-environment.postman_environment.json",
     "test:report": "newman run loto-bingo-api.postman_collection.json -e loto-bingo-environment.postman_environment.json -r htmlextra --reporter-htmlextra-export postman/reports/report.html",
     "test:verbose": "newman run loto-bingo-api.postman_collection.json -e loto-bingo-environment.postman_environment.json --verbose",
-    "install:newman": "npm install -g newman newman-reporter-htmlextra"
   },
   "devDependencies": {
     "newman": "^6.1.0",

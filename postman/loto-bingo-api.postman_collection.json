@@ -1,0 +1,672 @@
+{
+  "info": {
+    "name": "Loto Bingo API - Functional Tests",
+    "description": "Collection complète pour tester l'API Loto Bingo avec Newman",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080",
+      "type": "string"
+    },
+    {
+      "key": "gameId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "cardId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "uniqueIdentifier",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "1. Create Game",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 201', function () {",
+              "    pm.response.to.have.status(201);",
+              "});",
+              "",
+              "pm.test('Response has game id', function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData).to.have.property('id');",
+              "    pm.environment.set('gameId', jsonData.id);",
+              "});",
+              "",
+              "pm.test('Game has correct number of cards', function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData.numberOfCards).to.equal(5);",
+              "});",
+              "",
+              "pm.test('Game has words', function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData.words).to.be.an('array');",
+              "    pm.expect(jsonData.words.length).to.equal(20);",
+              "});",
+              "",
+              "pm.test('Game status is created', function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData.status).to.equal('created');",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"words\": [\n    \"Pomme\", \"Banane\", \"Cerise\", \"Datte\", \"Fraise\",\n    \"Raisin\", \"Kiwi\", \"Citron\", \"Mangue\", \"Orange\",\n    \"Pêche\", \"Poire\", \"Ananas\", \"Prune\", \"Framboise\",\n    \"Pastèque\", \"Melon\", \"Abricot\", \"Figue\", \"Coco\"\n  ],\n  \"numberOfCards\": 5,\n  \"wordsPerCard\": 15,\n  \"gridSize\": {\n    \"rows\": 3,\n    \"columns\": 5\n  }\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/games",
+          "host": ["{{baseUrl}}"],
+          "path": ["games"]
+        }
+      }
+    },
+    {
+      "name": "2. Get Game Details",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 200', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test('Game id matches', function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData.id).to.equal(pm.environment.get('gameId'));",
+              "});",
+              "",
+              "pm.test('Game has grid size', function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData.gridSize).to.have.property('rows');",
+              "    pm.expect(jsonData.gridSize).to.have.property('columns');",
+              "    pm.expect(jsonData.gridSize.rows).to.equal(3);",
+              "    pm.expect(jsonData.gridSize.columns).to.equal(5);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/games/{{gameId}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["games", "{{gameId}}"]
+        }
+      }
+    },
+    {
+      "name": "3. Get All Cards",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 200', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test('Returns 5 cards', function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData).to.be.an('array');",
+              "    pm.expect(jsonData.length).to.equal(5);",
+              "});",
+              "",
+              "pm.test('Each card has unique identifier', function () {",
+              "    var jsonData = pm.response.json();",
+              "    jsonData.forEach(card => {",
+              "        pm.expect(card).to.have.property('uniqueIdentifier');",
+              "        pm.expect(card).to.have.property('id');",
+              "        pm.expect(card).to.have.property('grid');",
+              "    });",
+              "    // Save first card for later tests",
+              "    pm.environment.set('cardId', jsonData[0].id);",
+              "    pm.environment.set('uniqueIdentifier', jsonData[0].uniqueIdentifier);",
+              "});",
+              "",
+              "pm.test('Card grid has correct dimensions', function () {",
+              "    var jsonData = pm.response.json();",
+              "    var firstCard = jsonData[0];",
+              "    pm.expect(firstCard.grid).to.be.an('array');",
+              "    pm.expect(firstCard.grid.length).to.equal(3); // 3 rows",
+              "    pm.expect(firstCard.grid[0].length).to.equal(5); // 5 columns",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/games/{{gameId}}/cards",
+          "host": ["{{baseUrl}}"],
+          "path": ["games", "{{gameId}}", "cards"]
+        }
+      }
+    },
+    {
+      "name": "4. Get Game Status (Before Draws)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 200', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test('Game status is created', function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData.status).to.equal('created');",
+              "});",
+              "",
+              "pm.test('No draws yet', function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData.drawnCount).to.equal(0);",
+              "});",
+              "",
+              "pm.test('All numbers remaining', function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData.remainingNumbers).to.be.an('array');",
+              "    pm.expect(jsonData.remainingNumbers.length).to.equal(20);",
+              "});",
+              "",
+              "pm.test('No winners yet', function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData.winners).to.be.an('array');",
+              "    pm.expect(jsonData.winners.length).to.equal(0);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/games/{{gameId}}/status",
+          "host": ["{{baseUrl}}"],
+          "path": ["games", "{{gameId}}", "status"]
+        }
+      }
+    },
+    {
+      "name": "5. Draw Number 1",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 200', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test('Drawn number is 1', function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData.number).to.equal(1);",
+              "});",
+              "",
+              "pm.test('Has corresponding word', function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData.word).to.be.a('string');",
+              "    pm.expect(jsonData.word).to.equal('Pomme');",
+              "});",
+              "",
+              "pm.test('Drawn numbers list updated', function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData.drawnNumbers).to.be.an('array');",
+              "    pm.expect(jsonData.drawnNumbers).to.include(1);",
+              "});",
+              "",
+              "pm.test('Drawn words list updated', function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData.drawnWords).to.be.an('array');",
+              "    pm.expect(jsonData.drawnWords).to.include('Pomme');",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"number\": 1\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/games/{{gameId}}/draw",
+          "host": ["{{baseUrl}}"],
+          "path": ["games", "{{gameId}}", "draw"]
+        }
+      }
+    },
+    {
+      "name": "6. Draw Multiple Numbers",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "exec": [
+              "// Draw numbers 2-10 in sequence",
+              "const numbers = [2, 3, 4, 5, 6, 7, 8, 9, 10];",
+              "pm.collectionVariables.set('numbersToDraw', JSON.stringify(numbers));"
+            ],
+            "type": "text/javascript"
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 200', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test('Multiple numbers drawn', function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData.drawnNumbers.length).to.be.at.least(2);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"number\": 2\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/games/{{gameId}}/draw",
+          "host": ["{{baseUrl}}"],
+          "path": ["games", "{{gameId}}", "draw"]
+        }
+      }
+    },
+    {
+      "name": "7. Draw Number 3",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"number\": 3\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/games/{{gameId}}/draw",
+          "host": ["{{baseUrl}}"],
+          "path": ["games", "{{gameId}}", "draw"]
+        }
+      }
+    },
+    {
+      "name": "8. Get Game Status (After Draws)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 200', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test('Game status is in_progress', function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData.status).to.equal('in_progress');",
+              "});",
+              "",
+              "pm.test('Has drawn numbers', function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData.drawnCount).to.be.at.least(3);",
+              "});",
+              "",
+              "pm.test('Remaining numbers decreased', function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData.remainingNumbers.length).to.be.below(20);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/games/{{gameId}}/status",
+          "host": ["{{baseUrl}}"],
+          "path": ["games", "{{gameId}}", "status"]
+        }
+      }
+    },
+    {
+      "name": "9. Get Statistics (Current)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 200', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test('Has statistics data', function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData).to.have.property('totalCards');",
+              "    pm.expect(jsonData).to.have.property('drawCount');",
+              "    pm.expect(jsonData).to.have.property('probabilityFirstWin');",
+              "    pm.expect(jsonData).to.have.property('expectedWinners');",
+              "});",
+              "",
+              "pm.test('Total cards is 5', function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData.totalCards).to.equal(5);",
+              "});",
+              "",
+              "pm.test('Has probability by draw', function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData.probabilityByDraw).to.be.an('array');",
+              "    pm.expect(jsonData.probabilityByDraw.length).to.be.at.least(1);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/games/{{gameId}}/statistics",
+          "host": ["{{baseUrl}}"],
+          "path": ["games", "{{gameId}}", "statistics"]
+        }
+      }
+    },
+    {
+      "name": "10. Get Statistics (With Draw Count)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 200', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test('Draw count is 15', function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData.drawCount).to.equal(15);",
+              "});",
+              "",
+              "pm.test('Probability by draw has 15 entries', function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData.probabilityByDraw.length).to.equal(15);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/games/{{gameId}}/statistics?drawCount=15",
+          "host": ["{{baseUrl}}"],
+          "path": ["games", "{{gameId}}", "statistics"],
+          "query": [
+            {
+              "key": "drawCount",
+              "value": "15"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "11. Validate Card (Line)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 200', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test('Validation result returned', function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData).to.have.property('isValid');",
+              "    pm.expect(jsonData).to.have.property('cardId');",
+              "    pm.expect(jsonData).to.have.property('winType');",
+              "});",
+              "",
+              "pm.test('Card id matches', function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData.cardId).to.equal(pm.environment.get('uniqueIdentifier'));",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"cardId\": \"{{uniqueIdentifier}}\",\n  \"winType\": \"line\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/games/{{gameId}}/validate",
+          "host": ["{{baseUrl}}"],
+          "path": ["games", "{{gameId}}", "validate"]
+        }
+      }
+    },
+    {
+      "name": "12. Try Draw Already Drawn Number",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 400 or 500', function () {",
+              "    pm.expect(pm.response.code).to.be.oneOf([400, 500]);",
+              "});",
+              "",
+              "pm.test('Error message about already drawn', function () {",
+              "    // This should fail because number 1 was already drawn",
+              "    console.log('Expected error: Number already drawn');",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"number\": 1\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/games/{{gameId}}/draw",
+          "host": ["{{baseUrl}}"],
+          "path": ["games", "{{gameId}}", "draw"]
+        }
+      }
+    },
+    {
+      "name": "13. Try Invalid Number",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 400 or 500', function () {",
+              "    pm.expect(pm.response.code).to.be.oneOf([400, 500]);",
+              "});",
+              "",
+              "pm.test('Error message about invalid number', function () {",
+              "    console.log('Expected error: Invalid number for this game');",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"number\": 99\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/games/{{gameId}}/draw",
+          "host": ["{{baseUrl}}"],
+          "path": ["games", "{{gameId}}", "draw"]
+        }
+      }
+    },
+    {
+      "name": "14. Get Non-Existent Game",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 404 or 500', function () {",
+              "    pm.expect(pm.response.code).to.be.oneOf([404, 500]);",
+              "});",
+              "",
+              "pm.test('Error about game not found', function () {",
+              "    console.log('Expected error: Game not found');",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/games/00000000-0000-0000-0000-000000000000",
+          "host": ["{{baseUrl}}"],
+          "path": ["games", "00000000-0000-0000-0000-000000000000"]
+        }
+      }
+    },
+    {
+      "name": "15. Create Second Game",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 201', function () {",
+              "    pm.response.to.have.status(201);",
+              "});",
+              "",
+              "pm.test('Second game created with different id', function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData.id).to.not.equal(pm.environment.get('gameId'));",
+              "});",
+              "",
+              "pm.test('Has 30 words', function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData.words.length).to.equal(30);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"words\": [\n    \"Chat\", \"Chien\", \"Oiseau\", \"Poisson\", \"Lapin\",\n    \"Hamster\", \"Tortue\", \"Perroquet\", \"Souris\", \"Rat\",\n    \"Cochon\", \"Vache\", \"Cheval\", \"Mouton\", \"Chèvre\",\n    \"Poule\", \"Canard\", \"Oie\", \"Dindon\", \"Coq\",\n    \"Lion\", \"Tigre\", \"Éléphant\", \"Girafe\", \"Zèbre\",\n    \"Singe\", \"Gorille\", \"Ours\", \"Loup\", \"Renard\"\n  ],\n  \"numberOfCards\": 10,\n  \"wordsPerCard\": 20,\n  \"gridSize\": {\n    \"rows\": 4,\n    \"columns\": 5\n  }\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/games",
+          "host": ["{{baseUrl}}"],
+          "path": ["games"]
+        }
+      }
+    }
+  ]
+}

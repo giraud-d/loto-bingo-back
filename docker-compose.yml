@@ -1,0 +1,27 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: loto-bingo-postgres
+    environment:
+      POSTGRES_DB: lotobingo
+      POSTGRES_USER: lotobingo
+      POSTGRES_PASSWORD: lotobingo123
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - loto-bingo-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U lotobingo"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres_data:
+    driver: local
+
+networks:
+  loto-bingo-network:
+    driver: bridge

@@ -1,0 +1,491 @@
+openapi: 3.0.3
+info:
+  title: Bingo Word Game API
+  description: API pour une application de loto bingo avec des mots au lieu de numéros
+  version: 1.0.0
+  contact:
+    name: Développeur Bingo
+    email: contact@bingo-app.fr
+
+servers:
+  - url: https://api.bingo-app.fr/v1
+    description: Serveur de production
+  - url: http://localhost:8080/v1
+    description: Serveur de développement
+
+paths:
+  /games:
+    post:
+      summary: Créer une nouvelle partie de bingo
+      description: Crée une nouvelle partie avec la liste de mots et les paramètres de jeu
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GameCreationRequest'
+      responses:
+        '201':
+          description: Partie créée avec succès
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Game'
+        '400':
+          description: Données invalides
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /games/{gameId}:
+    get:
+      summary: Récupérer les détails d'une partie
+      parameters:
+        - name: gameId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Détails de la partie
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Game'
+        '404':
+          description: Partie non trouvée
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /games/{gameId}/cards:
+    get:
+      summary: Récupérer tous les cartons d'une partie
+      parameters:
+        - name: gameId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Liste des cartons
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/BingoCard'
+
+  /games/{gameId}/cards/pdf:
+    get:
+      summary: Générer un PDF avec tous les cartons
+      parameters:
+        - name: gameId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: cardsPerPage
+          in: query
+          description: Nombre de cartons par page (1 ou 2)
+          schema:
+            type: integer
+            enum: [1, 2]
+            default: 1
+      responses:
+        '200':
+          description: PDF généré avec succès
+          content:
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+        '404':
+          description: Partie non trouvée
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /games/{gameId}/draw:
+    post:
+      summary: Tirer un numéro/mot
+      parameters:
+        - name: gameId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DrawRequest'
+      responses:
+        '200':
+          description: Tirage effectué
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DrawResult'
+        '400':
+          description: Numéro invalide ou déjà tiré
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /games/{gameId}/validate:
+    post:
+      summary: Valider un carton gagnant
+      parameters:
+        - name: gameId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ValidationRequest'
+      responses:
+        '200':
+          description: Validation effectuée
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationResult'
+        '404':
+          description: Carton non trouvé
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /games/{gameId}/statistics:
+    get:
+      summary: Obtenir les statistiques de probabilité de gain
+      parameters:
+        - name: gameId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: drawCount
+          in: query
+          description: Nombre de tirages pour le calcul de probabilité
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 90
+      responses:
+        '200':
+          description: Statistiques calculées
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GameStatistics'
+
+  /games/{gameId}/status:
+    get:
+      summary: Obtenir le statut actuel de la partie
+      parameters:
+        - name: gameId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Statut de la partie
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GameStatus'
+
+components:
+  schemas:
+    GameCreationRequest:
+      type: object
+      required:
+        - words
+        - numberOfCards
+        - wordsPerCard
+      properties:
+        words:
+          type: array
+          items:
+            type: string
+          minItems: 1
+          maxItems: 90
+          description: Liste des mots (max 90 pour correspondre au boulier)
+        numberOfCards:
+          type: integer
+          minimum: 1
+          maximum: 1000
+          description: Nombre de cartons à générer
+        wordsPerCard:
+          type: integer
+          minimum: 9
+          maximum: 25
+          description: Nombre de mots par carton (généralement 15 pour un bingo classique)
+        gridSize:
+          type: object
+          properties:
+            rows:
+              type: integer
+              minimum: 3
+              maximum: 5
+              default: 3
+            columns:
+              type: integer
+              minimum: 3
+              maximum: 5
+              default: 5
+          description: Taille de la grille (par défaut 3x5)
+
+    Game:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        words:
+          type: array
+          items:
+            $ref: '#/components/schemas/WordMapping'
+        numberOfCards:
+          type: integer
+        wordsPerCard:
+          type: integer
+        gridSize:
+          $ref: '#/components/schemas/GridSize'
+        createdAt:
+          type: string
+          format: date-time
+        status:
+          type: string
+          enum: [created, in_progress, finished]
+
+    WordMapping:
+      type: object
+      properties:
+        number:
+          type: integer
+          minimum: 1
+          maximum: 90
+        word:
+          type: string
+      description: Mapping entre un numéro (1-90) et un mot
+
+    GridSize:
+      type: object
+      properties:
+        rows:
+          type: integer
+        columns:
+          type: integer
+
+    BingoCard:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Identifiant unique du carton
+        gameId:
+          type: string
+          format: uuid
+        grid:
+          type: array
+          items:
+            type: array
+            items:
+              $ref: '#/components/schemas/CardCell'
+        uniqueIdentifier:
+          type: string
+          description: Identifiant visible sur le carton pour validation rapide
+
+    CardCell:
+      type: object
+      properties:
+        number:
+          type: integer
+          nullable: true
+          description: Numéro associé (null pour case libre)
+        word:
+          type: string
+          nullable: true
+          description: Mot affiché (null pour case libre)
+        isMarked:
+          type: boolean
+          default: false
+
+    DrawRequest:
+      type: object
+      required:
+        - number
+      properties:
+        number:
+          type: integer
+          minimum: 1
+          maximum: 90
+
+    DrawResult:
+      type: object
+      properties:
+        number:
+          type: integer
+        word:
+          type: string
+        drawnNumbers:
+          type: array
+          items:
+            type: integer
+          description: Liste de tous les numéros déjà tirés
+        drawnWords:
+          type: array
+          items:
+            type: string
+          description: Liste de tous les mots déjà tirés
+
+    ValidationRequest:
+      type: object
+      required:
+        - cardId
+      properties:
+        cardId:
+          type: string
+          description: Identifiant du carton à valider
+        winType:
+          type: string
+          enum: [line, full_card, pattern]
+          default: line
+
+    ValidationResult:
+      type: object
+      properties:
+        isValid:
+          type: boolean
+        cardId:
+          type: string
+        winType:
+          type: string
+        winningPattern:
+          type: array
+          items:
+            $ref: '#/components/schemas/Position'
+          description: Positions des cases gagnantes
+
+    Position:
+      type: object
+      properties:
+        row:
+          type: integer
+        column:
+          type: integer
+
+    GameStatistics:
+      type: object
+      properties:
+        totalCards:
+          type: integer
+        drawCount:
+          type: integer
+        probabilityFirstWin:
+          type: number
+          format: float
+          description: Probabilité d'avoir un premier gagnant
+        expectedWinners:
+          type: number
+          format: float
+          description: Nombre attendu de gagnants
+        probabilityByDraw:
+          type: array
+          items:
+            $ref: '#/components/schemas/DrawProbability'
+
+    DrawProbability:
+      type: object
+      properties:
+        drawNumber:
+          type: integer
+        cumulativeProbability:
+          type: number
+          format: float
+
+    GameStatus:
+      type: object
+      properties:
+        gameId:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum: [created, in_progress, finished]
+        drawnCount:
+          type: integer
+        remainingNumbers:
+          type: array
+          items:
+            type: integer
+        winners:
+          type: array
+          items:
+            $ref: '#/components/schemas/Winner'
+
+    Winner:
+      type: object
+      properties:
+        cardId:
+          type: string
+        uniqueIdentifier:
+          type: string
+        winType:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+
+    Error:
+      type: object
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+        details:
+          type: object
+          additionalProperties: true
+
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+security:
+  - BearerAuth: []
+
+tags:
+  - name: Games
+    description: Gestion des parties de bingo
+  - name: Cards
+    description: Gestion des cartons
+  - name: Draw
+    description: Tirage des numéros/mots
+  - name: Statistics
+    description: Statistiques et probabilités

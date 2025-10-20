@@ -31,3 +31,17 @@ build/
 
 ### VS Code ###
 .vscode/
+
+### Newman/Postman Reports ###
+postman/reports/
+*.postman_dump.json
+
+### Node modules (Newman) ###
+node_modules/
+package-lock.json
+
+### Environment variables ###
+.env
+
+### Database backups ###
+backup_*.sql

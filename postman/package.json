@@ -1,0 +1,26 @@
+{
+  "name": "loto-bingo-api-tests",
+  "version": "1.0.0",
+  "description": "Tests Newman pour l'API Loto Bingo",
+  "scripts": {
+    "test": "run-tests.sh",
+    "test:api": "newman run loto-bingo-api.postman_collection.json -e loto-bingo-environment.postman_environment.json",
+    "test:report": "newman run loto-bingo-api.postman_collection.json -e loto-bingo-environment.postman_environment.json -r htmlextra --reporter-htmlextra-export postman/reports/report.html",
+    "test:verbose": "newman run loto-bingo-api.postman_collection.json -e loto-bingo-environment.postman_environment.json --verbose",
+    "install:newman": "npm install -g newman newman-reporter-htmlextra"
+  },
+  "devDependencies": {
+    "newman": "^6.1.0",
+    "newman-reporter-htmlextra": "^1.23.0"
+  },
+  "keywords": [
+    "api",
+    "testing",
+    "newman",
+    "postman",
+    "loto",
+    "bingo"
+  ],
+  "author": "Damien Giraudet",
+  "license": "MIT"
+}
